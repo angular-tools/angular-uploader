@@ -1,0 +1,105 @@
+<div>
+    <div class="bs-docs-example">
+        <ul id="myTab" class="nav nav-tabs" ng-init="obj.tab=hideTunes&&'sfx'||'stock'">
+            <li ng-class="{active: obj.tab==='stock'}" ng-if="!hideTunes"><a href="" ng-click="obj.tab='stock'" data-toggle="tab"><i class="fa fa-music"></i> Tunes</a></li>
+            <li ng-class="{active: obj.tab==='sfx'}" ng-if="!hideSfx"><a href="" ng-click="obj.tab='sfx'" data-toggle="tab"><i class="fa fa-bolt"></i> Effects</a></li>
+            <li ng-class="{active: obj.tab==='upload'}"><a href="" ng-click="obj.tab='upload'" data-toggle="tab"><i class="fa fa-upload"></i> Upload</a></li>
+            <li ng-class="{active: obj.tab==='resources'}"><a href="" ng-click="obj.tab='resources'" data-toggle="tab"><i class="glyphicon glyphicon-cd"></i> Free Music</a></li>
+        </ul>
+        <div id="myTabContent" class="tab-content">
+            <div class="tab-pane fade" ng-class="{'in active': obj.tab==='stock'}" id="stock" ng-if="!hideTunes">
+                <nav>
+                    <ul class="pagination text-small">
+                        <li ng-class="{active: !obj.selGenre}" ng-click="obj.selGenre = ''"><a href="" ng-click="">All tracks</a></li>
+                        <li ng-class="{active: genre === obj.selGenre}" ng-click="obj.selGenre = genre" ng-repeat="(genre, mp3s) in tracks"><a href="" ng-click="">{{genre | ucfirst}}</a></li>
+                    </ul>
+                </nav>
+
+                <div class="pre-scrollable">
+                    <ul class="list-group" ng-repeat="(genre, mp3s) in tracks" ng-show="!obj.selGenre || genre===obj.selGenre">
+                        <li class="list-group-item" ng-class="{'alert alert-warning': obj.sound === url}" ng-repeat="mp3 in mp3s" ng-init="url=absoluteURL(mp3.url)">
+                            <a ng-if="obj.preview !== url" href="" ng-click="obj.preview = url" class="text-muted"><i class="fa fa-play"></i></a>
+                            <span ng-if="obj.preview === url" audio-player sound="{{url}}" style="icon" autoplay="true" btn-class="text-muted"></span>
+                            {{mp3.name | truncate:30}}
+                            <button type="button" class="btn btn-default btn-xs pull-right" ng-click="obj.sound = url" ng-show="obj.sound !== url"><i class="fa fa-plus-circle"></i> Select</button>
+                            <button type="button" class="btn btn-default btn-xs pull-right" ng-click="obj.sound = ''" ng-show="obj.sound === url"><i class="fa fa-check-circle"></i> Selected</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-pane fade" ng-class="{'in active': obj.tab==='sfx'}" id="sfx" ng-if="!hideSfx">
+                <nav>
+                    <ul class="pagination text-small">
+                        <li ng-class="{active: !obj.sfxGenre}" ng-click="obj.sfxGenre = ''"><a href="" ng-click="">All genres</a></li>
+                        <li ng-class="{active: genre === obj.sfxGenre}" ng-click="obj.sfxGenre = genre" ng-repeat="(genre, mp3s) in sfxs"><a href="" ng-click="">{{genre | ucfirst}}</a></li>
+                    </ul>
+                </nav>
+
+                <div class="form-group">
+                    <input type="search" class="form-control" ng-model="obj.sfxSearch" placeholder="Search for.." ng-keypress="obj.preview = ''" />
+                </div>
+
+                <div class="pre-scrollable">
+                    <ul class="list-group" ng-repeat="(genre, mp3s) in sfxs" ng-show="!obj.sfxGenre || genre===obj.sfxGenre">
+                        <li class="list-group-item" ng-class="{'alert alert-warning': obj.sound === url}" ng-repeat="mp3 in mp3s | filter:obj.sfxSearch" ng-init="url=absoluteURL(mp3.url)">
+                            <a ng-if="obj.preview !== url" href="" ng-click="obj.preview = url" class="text-muted"><i class="fa fa-play"></i></a>
+                            <span ng-if="obj.preview === url" audio-player sound="{{url}}" style="icon" autoplay="true" btn-class="text-muted"></span>
+                            {{mp3.name | truncate:30}}
+                            <button type="button" class="btn btn-default btn-xs pull-right" ng-click="obj.sound = url" ng-show="obj.sound !== url"><i class="fa fa-plus-circle"></i> Select</button>
+                            <button type="button" class="btn btn-default btn-xs pull-right" ng-click="obj.sound = ''" ng-show="obj.sound === url"><i class="fa fa-check-circle"></i> Selected</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="upload" ng-class="{'in active': obj.tab==='upload'}">
+                <div class="form-group">
+                    <label>Upload Mp3: </label>
+
+                    <div upload-button ng-model="obj.sound" type="audio"></div>
+                </div>
+
+            </div>
+            <div class="tab-pane fade" id="upload" ng-class="{'in active': obj.tab==='resources'}">
+                <h3>Free music resources:</h3>
+
+                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                    <div class="panel panel-default" ng-repeat="resource in resources | orderBy:'rating':true">
+                        <div class="panel-heading" role="tab" id="headingOne">
+                            <h4 class="panel-title">
+                                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{$index}}">
+                                    <div class="pull-right"><i class="fa fa-star fa-sm text-warning" ng-repeat="i in [1,2,3,4,5] | limitTo:resource.rating"></i></div>
+                                    {{resource.name}}
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse{{$index}}" class="panel-collapse collapse" ng-class="{'in': !$index}">
+                            <div class="panel-body">
+                                {{resource.comments}}
+                                <hr />
+                                <div class="pull-right">
+                                    <a class="btn btn-default" href="" ng-href="{{resource.url}}" target="_blank"><i class="fa fa-external-link"></i> Open link</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <div ng-show="!processing">
+        <div class="pull-left" ng-show="obj.sound">
+            <span title="Selected track" audio-player sound="{{obj.sound}}" style="simple" btn-class="btn-default btn-sm" btn-text="Play selected track"></span>
+            <sup class="text-small">&nbsp;&nbsp;<a class="text-muted" href="" ng-click="obj.sound = ''" title="Remove sound"><i class="fa fa-trash"></i></a></sup>
+        </div>
+
+        <div class="pull-right">
+            <button type="button" class="btn btn-default" ng-show="!obj.sound" ng-click="save()"><i class="fa fa-volume-off"></i> No music</button>
+            <button type="button" class="btn btn-lg btn-primary" ng-show="obj.sound" ng-click="save()"><i class="fa fa-check-circle"></i> Use selected</button>
+        </div>
+
+        <div class="clearfix"></div>
+    </div>
+</div>

@@ -1,0 +1,188 @@
+<script src="//www.google.com/jsapi"></script>
+<script src="//apis.google.com/js/client.js"></script>
+
+<div class="row" id="uploadPopup">
+    <div class="col-md-12" ng-show="processing">
+        <h3 class="title"><i class="fa fa-spinner fa-spin"></i> Processing items</h3>
+
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped active" style="width: 100%">
+                Processing items, please wait..
+            </div>
+        </div>
+
+        <p align="center">
+            <button type="button" class="btn btn-danger" ng-click="abort()"><i class="fa fa-ban"></i> Abort</button>
+        </p>
+    </div>
+    <div class="col-md-12" ng-show="!processing">
+        <ul id="myTab" class="nav nav-tabs">
+            <li class="active"><a href="#image-search" data-toggle="tab"><i class="fa fa-picture-o"></i> Image search</a></li>
+            <li><a href="#video-search" data-toggle="tab"><i class="fa fa-video-camera"></i> Video search</a></li>
+            <li><a href="#upload" data-toggle="tab"><i class="fa fa-upload"></i> Upload</a></li>
+            <li><a id="selectedTab" href="#selectedItems" data-toggle="tab" ng-show="urls.length"><i class="fa fa-check-circle"></i> Selected ({{urls.length}})</a></li>
+        </ul>
+        <div id="myTabContent" class="tab-content">
+            <div class="tab-pane fade in active" id="image-search">
+                <form class="form-horizontal" name="imageSearchForm" ng-submit="loadImages(term)">
+                    <div class="preview">
+                        <div class="input-group">
+                            <div class="input-group-btn">
+                                <div class="btn-group">
+                                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                                        <span class="caret"></span>
+                                        <span data-bind="label" id="searchLabel">{{license == 'creativeCommon' && 'CC' || 'All'}} Images of:</span>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu">
+                                        <li><a href="" ng-click="license='any'">Any license</a></li>
+                                        <li><a href="" ng-click="license='creativeCommon'"><abbr title="Creative commons (attribution)">CC</abbr> license only</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <input type="search" class="form-control" ng-model="term" placeholder="Search keywords..." ng-required="true" />
+                            <span class="input-group-btn">
+                                <button class="btn btn-default btn-success" id="image-search-button" type="submit"><i class="fa fa-search"></i> Go!</button>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="preview pre-scrollable">
+                        <div class="row">
+                            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-3 item" ng-repeat="result in imageResults">
+                                <div class="thumbnail" ng-class="{'alert-warning': sources[result.src]}" ng-click="sources[result.src]=!sources[result.src]">
+                                    <div ng-thumb url="result.thumb"></div>
+
+                                    <div class="caption">
+                                        <input type="checkbox" ng-model="sources[result.src]" />
+                                        <span class="text-small label-fixed-height" title="{{result.caption}}" ng-bind-html="((result.caption || term) | truncate:20) | trustedHTML"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="help-block" ng-show="moreImages" align="center">
+                            <button type="button" class="btn btn-default" ng-click="loadMoreImages()"><i class="fa fa-refresh"></i> Load more images..</button>
+                        </p>
+                    </div>
+                </form>
+            </div>
+            <div class="tab-pane fade" id="video-search">
+                <form class="form-horizontal" name="videoSearchForm" ng-submit="loadVideos(term)">
+                    <div class="preview">
+                        <div class="input-group">
+                            <div class="input-group-btn">
+                                <div class="btn-group">
+                                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                                        <span class="caret"></span>
+                                        <span data-bind="label" id="searchLabel">{{license == 'creativeCommon' && 'CC' || 'All'}} Videos of:</span>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu">
+                                        <li><a href="" ng-click="license='any'">Any license</a></li>
+                                        <li><a href="" ng-click="license='creativeCommon'"><abbr title="Creative commons (attribution)">CC</abbr> license only</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <input type="search" class="form-control" ng-model="term" placeholder="Search keywords..." ng-required="true" />
+                            <span class="input-group-btn">
+                                <button class="btn btn-default btn-success" id="image-search-button" type="submit"><i class="fa fa-search"></i> Go!</button>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="preview pre-scrollable">
+                        <div class="row">
+                            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-3 item" ng-repeat="result in videoResults">
+                                <div class="thumbnail" ng-class="{'alert-warning': sources[result.src]}" ng-click="sources[result.src]=!sources[result.src]" ng-mouseenter="hover=true"
+                                     ng-mouseleave="hover=false">
+
+                                    <div class="close-button" ng-show="hover">
+                                        <a href="" class="cross" ng-href="{{result.src}}" title="Preview video" data-toggle="tooltip" target="_blank" ng-click="$event.stopImmediatePropagation()">
+                                            <span class="fa-stack fa-2x fa-sm">
+                                                <i class="fa fa-circle fa-stack-2x text-danger"></i>
+                                                <i class="fa fa-stack-1x fa-play fa-inverse"></i>
+                                            </span>
+                                        </a>
+                                    </div>
+
+                                    <div ng-thumb url="result.thumb"></div>
+
+                                    <div class="caption">
+                                        <input type="checkbox" ng-model="sources[result.src]" />
+                                        <span class="text-small label-fixed-height" title="{{result.caption}}" ng-bind-html="((result.caption || term) | truncate:20) | trustedHTML"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="help-block" ng-show="moreVideos" align="center">
+                            <button type="button" class="btn btn-default" ng-click="searchVideos(term, moreVideos)"><i class="fa fa-refresh"></i> Load more videos..</button>
+                        </p>
+                    </div>
+                </form>
+            </div>
+            <div class="tab-pane fade" id="upload">
+                <div ng-show="uploading">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 100%">
+                            <span>Uploading {{file}}, please wait..</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form class="form-horizontal" name="uploadForm" ng-show="!uploading">
+                    <div class="form-group">
+                        <label class="col-md-3 col-xs-5 control-label" for="upload">Upload photo / video:</label>
+
+                        <div class="col-xs-5 col-md-9">
+                            <button class="btn btn-primary" ngf-select="true" ngf-accept="'image/*,video/*'" ngf-change="upload($files)" ngf-multiple="true" ngf-max-size='100000000' ngf-keep="false">
+                                <i class="fa fa-upload"></i> Select file..
+                            </button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <div class="col-md-10 col-md-offset-1">
+                            <div class="well" ngf-drop ng-model="files" class="drop-box" ngf-drag-over-class="dragover" ngf-multiple="true" ngf-change="upload($files)" ngf-allow-dir="false"
+                                 ngf-accept="'image/*,video/*'" ngf-max-size='100000000'>
+                                <p align="center">You can also drag-n-drop your files here</p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="tab-pane fade" id="selectedItems">
+                <div class="form-group" ng-show="urls.length">
+                    <div class="col-md-10 col-md-offset-1">
+                        <p class="text-bold">Selected images / videos:</p>
+
+                        <div class="preview pre-scrollable">
+                            <div class="row">
+                                <div class="col-xs-4 col-sm-3 item" ng-repeat="url in urls">
+                                    <div class="thumbnail">
+                                        <div ng-thumb url="url"></div>
+
+                                        <div class="caption">
+                                            <a href="#" ng-click="sources[url] = false"><i class="fa fa-remove"></i> remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div ng-show="!processing">
+    <div class="preview pull-left" ng-show="urls.length">
+        <a class="btn btn-default btn-xs text-muted text-small" href="" ng-click="sources={}"> <i class="fa fa-times"></i> Clear all</a>
+    </div>
+
+    <div class="pull-right">
+        <button type="button" class="btn btn-primary btn-lg" ng-disabled="!urls.length" ng-click="save()"><i class="fa fa-plus-circle"></i> Add selected</button>
+    </div>
+
+    <div class="clearfix"></div>
+</div>

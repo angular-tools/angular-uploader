@@ -1,0 +1,15 @@
+<div class="inline-block">
+    <button class="{{btnClass||'btn btn-default btn-sm'}}" ng-disabled="uploading" ngf-select ng-model="files" ngf-accept="getType(type)" ngf-change="startUpload($files)" ng-show="!uploading">
+        <i class="fa fa-upload"></i> {{btnText || 'Select file..'}}
+    </button>
+    <button class="{{btnClass||'btn btn-default btn-sm'}}" ng-disabled="true" ng-show="uploading">
+        <i class="fa fa-refresh fa-spin"></i> Uploading..
+    </button>
+
+    <div class="inline-block" ng-show="url && preview" style="line-height: 32px"> |
+        <a href="" ng-href="{{url}}" class="inline-block" target="preview">
+            <div thumb-height="32" ng-thumb url="url"></div>
+        </a>
+    </div>
+    <div class="inline-block" ng-show="url && !hideRemove"> | <a href="" ng-click="url=''" class="text-small text-muted" title="Remove image"><i class="fa fa-trash"></i></a></div>
+</div>
