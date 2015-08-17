@@ -1,0 +1,31 @@
+{
+  "name": "Angular file uploader",
+  "authors": [
+    "minutephp <dev@minutephp.com>"
+  ],
+  "description": "Dead simple file uploader using AngularJS",
+  "main": "src/js/angular-uploader.js",
+  "keywords": [
+    "angularjs",
+    "file",
+    "uploader"
+  ],
+  "license": "MIT",
+  "homepage": "http://www.minutephp.com",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "943b777099",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "943b7770992ea7cdd604211eee1a2c7e399226d3"
+  },
+  "_source": "git://github.com/angular-tools/angular-uploader.git",
+  "_target": "*",
+  "_originalSource": "angular-tools/angular-uploader"
+}

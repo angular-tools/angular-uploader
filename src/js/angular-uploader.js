@@ -6,7 +6,7 @@
     var basePath = currentScriptPath.substring(0, currentScriptPath.lastIndexOf('/') + 1) + '..';
     var uploaderURL = '/generic/uploader';
 
-    angular.module('angularUploader', ['ngFileUpload', 'session', 'ngDialog', 'stringfilters', 'ngThumb', 'angularAudio'])
+    angular.module('angularUploader', ['ngFileUpload', 'session', 'ngDialog', 'angularStringFilters', 'angularThumb', 'angularAudio'])
         .factory('$musicUploader', ['ngDialog', '$timeout', function ($dialog, $timeout) {
             var audioUploader = {};
             var baseURL = 'http://www.bgtracks.com';
