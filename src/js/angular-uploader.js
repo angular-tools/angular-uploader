@@ -202,13 +202,15 @@
                         };
 
                         $scope.loadVideos = function (term) {
-                            if (typeof(window.videoSearch) !== 'undefined') {
-                                $scope.searchVideos(term);
-                            } else {
-                                if (typeof(gapi) !== 'undefined') {
-                                    gapi.client.load('youtube', 'v3', function () {window.videoSearch = gapi.client.youtube.search.list;});
+                            if (term) {
+                                if (typeof(window.videoSearch) !== 'undefined') {
+                                    $scope.searchVideos(term);
+                                } else {
+                                    if (typeof(gapi) !== 'undefined') {
+                                        gapi.client.load('youtube', 'v3', function () {window.videoSearch = gapi.client.youtube.search.list;});
+                                    }
+                                    setTimeout($scope.loadVideos, 1000, term);
                                 }
-                                setTimeout($scope.loadVideos, 1000, term);
                             }
                         };
 
@@ -229,11 +231,13 @@
                             request.execute(function (response) {
                                 console.log(response);
                                 angular.forEach(response.items, function (result) {
-                                    $scope.videoResults.push({
-                                        thumb: result.snippet.thumbnails.default.url,
-                                        src: 'http://www.youtube.com/watch?v=' + result.id.videoId,
-                                        caption: result.snippet.title
-                                    });
+                                    if(result.snippet.liveBroadcastContent === 'none') {
+                                        $scope.videoResults.push({
+                                            thumb: result.snippet.thumbnails.default.url,
+                                            src: 'http://www.youtube.com/watch?v=' + result.id.videoId,
+                                            caption: result.snippet.title
+                                        });
+                                    }
                                 });
 
                                 $timeout(function () {$scope.moreVideos = response.nextPageToken ? response.nextPageToken : false;});
@@ -258,7 +262,7 @@
                                 if (proxy.length > 0) {
                                     $scope.processing = true;
 
-                                    $http.post('/generic/url-proxy', {urls: proxy}).then(
+                                    $http.post('/generic/image-proxy', {urls: proxy, width: 1000, height: 562}).then(
                                         function success(obj) {
                                             if ($scope.processing) {
                                                 var urls = obj.data;

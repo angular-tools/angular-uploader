@@ -19,8 +19,8 @@
                     <ul class="list-group" ng-repeat="(genre, mp3s) in tracks" ng-show="!obj.selGenre || genre===obj.selGenre">
                         <li class="list-group-item" ng-class="{'alert alert-warning': obj.sound === url}" ng-repeat="mp3 in mp3s" ng-init="url=absoluteURL(mp3.url)">
                             <a ng-if="obj.preview !== url" href="" ng-click="obj.preview = url" class="text-muted"><i class="fa fa-play"></i></a>
-                            <span ng-if="obj.preview === url" audio-player sound="{{url}}" style="icon" autoplay="true" btn-class="text-muted"></span>
-                            {{mp3.name | truncate:30}}
+                            <span ng-if="obj.preview === url" audio-player sound="{{url}}" skin="icon" autoplay="true" btn-class="text-muted"></span>
+                            <a href="" class="graylinks" ng-click="obj.sound = obj.sound !== url && url || ''">{{mp3.name | truncate:30}}</a>
                             <button type="button" class="btn btn-default btn-xs pull-right" ng-click="obj.sound = url" ng-show="obj.sound !== url"><i class="fa fa-plus-circle"></i> Select</button>
                             <button type="button" class="btn btn-default btn-xs pull-right" ng-click="obj.sound = ''" ng-show="obj.sound === url"><i class="fa fa-check-circle"></i> Selected</button>
                         </li>
@@ -43,7 +43,7 @@
                     <ul class="list-group" ng-repeat="(genre, mp3s) in sfxs" ng-show="!obj.sfxGenre || genre===obj.sfxGenre">
                         <li class="list-group-item" ng-class="{'alert alert-warning': obj.sound === url}" ng-repeat="mp3 in mp3s | filter:obj.sfxSearch" ng-init="url=absoluteURL(mp3.url)">
                             <a ng-if="obj.preview !== url" href="" ng-click="obj.preview = url" class="text-muted"><i class="fa fa-play"></i></a>
-                            <span ng-if="obj.preview === url" audio-player sound="{{url}}" style="icon" autoplay="true" btn-class="text-muted"></span>
+                            <span ng-if="obj.preview === url" audio-player sound="{{url}}" skin="icon" autoplay="true" btn-class="text-muted"></span>
                             {{mp3.name | truncate:30}}
                             <button type="button" class="btn btn-default btn-xs pull-right" ng-click="obj.sound = url" ng-show="obj.sound !== url"><i class="fa fa-plus-circle"></i> Select</button>
                             <button type="button" class="btn btn-default btn-xs pull-right" ng-click="obj.sound = ''" ng-show="obj.sound === url"><i class="fa fa-check-circle"></i> Selected</button>
@@ -91,7 +91,7 @@
 
     <div ng-show="!processing">
         <div class="pull-left" ng-show="obj.sound">
-            <span title="Selected track" audio-player sound="{{obj.sound}}" style="simple" btn-class="btn-default btn-sm" btn-text="Play selected track"></span>
+            <span title="Selected track" audio-player sound="{{obj.sound}}" skin="simple" btn-class="btn-default btn-sm" btn-text="Play selected track"></span>
             <sup class="text-small">&nbsp;&nbsp;<a class="text-muted" href="" ng-click="obj.sound = ''" title="Remove sound"><i class="fa fa-trash"></i></a></sup>
         </div>
 
