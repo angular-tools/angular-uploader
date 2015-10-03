@@ -22,17 +22,17 @@
                         $scope.hideSfx = !!hideSfx;
 
                         $scope.init = function () {
-                            $.getJSON(baseURL + '/api/sfxs?sort=genre' + '&callback=?', function (obj) {
+                            $.getJSON(baseURL + '/api/sfxs?callback=?', function (obj) {
                                 console.log(obj);
                                 $timeout(function () { $scope.sfxs = obj; });
                             });
 
-                            $.getJSON(baseURL + '/api/tracks?sort=genre' + '&callback=?', function (obj) {
+                            $.getJSON(baseURL + '/api/tracks?callback=?', function (obj) {
                                 console.log(obj);
                                 $timeout(function () { $scope.tracks = obj; });
                             });
 
-                            $.getJSON(baseURL + '/api/resources?sort=popularity&callback=?', function (obj) {
+                            $.getJSON(baseURL + '/api/resources?callback=?', function (obj) {
                                 $timeout(function () { $scope.resources = obj; });
                             });
 
