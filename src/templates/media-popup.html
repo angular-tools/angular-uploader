@@ -18,7 +18,7 @@
     <div class="col-md-12" ng-show="!processing">
         <ul id="myTab" class="nav nav-tabs">
             <li class="active"><a href="#image-search" data-toggle="tab"><i class="fa fa-picture-o"></i> Image search</a></li>
-            <li><a href="#video-search" data-toggle="tab" ng-click="loadVideos(term)"><i class="fa fa-video-camera"></i> Video search</a></li>
+            <li><a href="#video-search" data-toggle="tab"><i class="fa fa-video-camera"></i> Video search</a></li>
             <li><a href="#upload" data-toggle="tab"><i class="fa fa-upload"></i> Upload</a></li>
             <li><a id="selectedTab" href="#selectedItems" data-toggle="tab" ng-show="urls.length"><i class="fa fa-check-circle"></i> Selected ({{urls.length}})</a></li>
         </ul>
@@ -84,7 +84,7 @@
                             </div>
                             <input type="search" class="form-control" ng-model="term" placeholder="Search keywords..." ng-required="true" />
                             <span class="input-group-btn">
-                                <button class="btn btn-default btn-success animate tada" id="image-search-button" type="submit"><i class="fa fa-search"></i> Go!</button>
+                                <button class="btn btn-default btn-success" id="image-search-button" type="submit"><i class="fa fa-search"></i> Go!</button>
                             </span>
                         </div>
                     </div>

@@ -22,17 +22,17 @@
                         $scope.hideSfx = !!hideSfx;
 
                         $scope.init = function () {
-                            $.getJSON(baseURL + '/api/sfxs?callback=?', function (obj) {
+                            $.getJSON(baseURL + '/api/sfxs?sort=genre' + '&callback=?', function (obj) {
                                 console.log(obj);
                                 $timeout(function () { $scope.sfxs = obj; });
                             });
 
-                            $.getJSON(baseURL + '/api/tracks?callback=?', function (obj) {
+                            $.getJSON(baseURL + '/api/tracks?sort=genre' + '&callback=?', function (obj) {
                                 console.log(obj);
                                 $timeout(function () { $scope.tracks = obj; });
                             });
 
-                            $.getJSON(baseURL + '/api/resources?callback=?', function (obj) {
+                            $.getJSON(baseURL + '/api/resources?sort=popularity&callback=?', function (obj) {
                                 $timeout(function () { $scope.resources = obj; });
                             });
 
@@ -202,15 +202,13 @@
                         };
 
                         $scope.loadVideos = function (term) {
-                            if (term) {
-                                if (typeof(window.videoSearch) !== 'undefined') {
-                                    $scope.searchVideos(term);
-                                } else {
-                                    if (typeof(gapi) !== 'undefined') {
-                                        gapi.client.load('youtube', 'v3', function () {window.videoSearch = gapi.client.youtube.search.list;});
-                                    }
-                                    setTimeout($scope.loadVideos, 1000, term);
+                            if (typeof(window.videoSearch) !== 'undefined') {
+                                $scope.searchVideos(term);
+                            } else {
+                                if (typeof(gapi) !== 'undefined') {
+                                    gapi.client.load('youtube', 'v3', function () {window.videoSearch = gapi.client.youtube.search.list;});
                                 }
+                                setTimeout($scope.loadVideos, 1000, term);
                             }
                         };
 
@@ -231,13 +229,11 @@
                             request.execute(function (response) {
                                 console.log(response);
                                 angular.forEach(response.items, function (result) {
-                                    if(result.snippet.liveBroadcastContent === 'none') {
-                                        $scope.videoResults.push({
-                                            thumb: result.snippet.thumbnails.default.url,
-                                            src: 'http://www.youtube.com/watch?v=' + result.id.videoId,
-                                            caption: result.snippet.title
-                                        });
-                                    }
+                                    $scope.videoResults.push({
+                                        thumb: result.snippet.thumbnails.default.url,
+                                        src: 'http://www.youtube.com/watch?v=' + result.id.videoId,
+                                        caption: result.snippet.title
+                                    });
                                 });
 
                                 $timeout(function () {$scope.moreVideos = response.nextPageToken ? response.nextPageToken : false;});
@@ -262,7 +258,7 @@
                                 if (proxy.length > 0) {
                                     $scope.processing = true;
 
-                                    $http.post('/generic/image-proxy', {urls: proxy, width: 1000, height: 562}).then(
+                                    $http.post('/generic/url-proxy', {urls: proxy}).then(
                                         function success(obj) {
                                             if ($scope.processing) {
                                                 var urls = obj.data;
