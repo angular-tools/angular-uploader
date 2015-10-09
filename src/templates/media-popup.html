@@ -134,18 +134,10 @@
                         <label class="col-md-3 col-xs-5 control-label" for="upload">Upload photo / video:</label>
 
                         <div class="col-xs-5 col-md-9">
-                            <button class="btn btn-primary" ngf-select="true" ngf-accept="'image/*,video/*'" ngf-change="upload($files)" ngf-multiple="true" ngf-max-size='100000000' ngf-keep="false">
-                                <i class="fa fa-upload"></i> Select file..
+                            <button type="button" upload-button ng-model="ignore" class="btn btn-primary" uploading="uploading" multiple="true" on-upload-complete="upload"
+                                accept=".png, .jpg, .jpeg .gif, .avi, .mov, .wmv, .mp4, .flv">
+                                <i class="fa fa-upload"></i> Upload photos / videos..
                             </button>
-                        </div>
-                    </div>
-                    <hr />
-                    <div class="form-group">
-                        <div class="col-md-10 col-md-offset-1">
-                            <div class="well" ngf-drop ng-model="files" class="drop-box" ngf-drag-over-class="dragover" ngf-multiple="true" ngf-change="upload($files)" ngf-allow-dir="false"
-                                 ngf-accept="'image/*,video/*'" ngf-max-size='100000000'>
-                                <p align="center">You can also drag-n-drop your files here</p>
-                            </div>
                         </div>
                     </div>
                 </form>

@@ -1,14 +1,120 @@
 (function () {
     'use strict';
 
-    angular.module('angularUploader', ['session', 'ngDialog', 'angularStringFilters', 'angularThumb', 'angularAudio', 'angularSimpleUploader'])
-        .factory('$musicUploader', ['ngDialog', '$timeout', function ($dialog, $timeout) {
+    var scripts = document.getElementsByTagName("script");
+    var currentScriptPath = scripts[scripts.length - 1].src;
+    var basePath = currentScriptPath.substring(0, currentScriptPath.lastIndexOf('/') + 1) + '..';
+    var uploaderURL = '/generic/uploader';
+
+    angular.module('angularUploader', ['session', 'ngDialog', 'angularStringFilters', 'angularThumb', 'angularAudio'])
+        .directive('uploadButton', ['$timeout', '$notice', function ($timeout, $notice) {
+            return {
+                restrict: 'A',
+                replace: true,
+                require: 'ngModel',
+                scope: {btnText: '@', btnClass: '@', onUpload: '=', onProgress: '=', type: '@', preview: '@', hideRemove: '='},
+                templateUrl: basePath + '/templates/upload-button.html',
+                link: function ($scope, element, attrs, ngModel) {
+                    $scope.init = function () {
+                        $scope.url = ngModel.$viewValue;
+                        $scope.$watch('url', function () {
+                            ngModel.$setViewValue($scope.url);
+                        });
+
+                        if (($scope.preview === 'popup') && (!$scope.type || ($scope.type === 'image'))) {
+                            $(element).popover({
+                                container: 'body',
+                                html: true,
+                                template: '<div class="popover" role="tooltip"><div class="arrow"></div><div class="popover-content"></div></div>',
+                                content: function () { return '<p>Current image:</p><img src="' + $scope.url + '" style="max-width:200px;max-height:200px;">'; },
+                                placement: 'top'
+                            });
+
+                            $(element).hover(function () {
+                                if ($scope.url) {
+                                    $(element).popover('show');
+                                }
+                            }, function () {
+                                $(element).popover('hide');
+                            });
+                        }
+                    };
+
+                    ngModel.$render = $scope.init;
+                },
+                controller: function ($scope, $element) {
+                    $scope.files = [];
+                    $scope.url = '';
+                    $scope.uploading = false;
+
+                    $scope.startUpload = function (files) {
+                        if (files && files.length) {
+                            var file, i;
+
+                            $scope.uploading = files.length > 0;
+
+                            for (i = 0; i < files.length; i++) {
+                                file = files[i];
+
+                                var promise = $upload.upload({
+                                    url: uploaderURL,
+                                    headers: {'Content-Type': file.type},
+                                    method: 'POST',
+                                    data: file,
+                                    file: file
+                                });
+
+                                promise.then($scope.uploadDone, $scope.uploadDone);
+                                promise.then($scope.success, $scope.error, $scope.progress);
+                            }
+                        }
+                    };
+
+                    $scope.uploadDone = function () {
+                        $scope.uploading = false;
+                    };
+
+                    $scope.getType = function (t) {
+                        return (!t || /image/i.test(t)) ? 'image/*' : /vid/i.test(t) ? 'video/*' : /(audio|sound)/i.test(t) ? 'audio/*' : /html/i.test(t) ? 'text/html' : /pdf/i.test(t) ? 'application/pdf' : '';
+                    };
+
+                    $scope.success = function (obj) {
+                        if (obj && obj.data && obj.data.url && obj.status === 200) {
+                            $scope.url = obj.data.url;
+
+                            $scope.progress({loaded: 100, total: 99});
+
+                            $timeout(function () {
+                                if (typeof($scope.onUpload) === 'function') {
+                                    $scope.onUpload($scope.url);
+                                }
+                            });
+                        } else {
+                            $scope.error(obj);
+                        }
+                    };
+
+                    $scope.error = function (obj) {
+                        $notice.error('Upload failed: ' + (obj && obj.data ? obj.data : ''), 'Upload error', 'error');
+                    };
+
+                    $scope.progress = function (evt) {
+                        if ((typeof($scope.onProgress) == 'function') && (evt.total > 0)) {
+                            $scope.onProgress((evt.loaded / evt.total) * 99);
+                        }
+                    };
+                }
+            };
+        }]);
+})();
+
+/*        .factory('$musicUploader', ['ngDialog', '$timeout', function ($dialog, $timeout) {
             var audioUploader = {};
             var baseURL = 'http://www.bgtracks.com';
 
             audioUploader.show = function (cb, sound, hideTunes, hideSfx, defaultTab) {
                 $dialog.open({
-                    template: '/static/bower_components/angular-uploader/src/templates/audio-popup.html',
+                    template: basePath + '/templates/audio-popup.html',
                     className: 'ngdialog-theme-plain',
                     controller: ['$scope', function ($scope) {
                         $scope.obj = {};
@@ -59,10 +165,20 @@
                 var promises = [];
                 var imageSearch;
 
+                var abortAll = function () {
+                    angular.forEach(promises, function (upload) {
+                        upload.abort();
+                    });
+
+                    promises = [];
+                };
+
                 $dialog.open({
-                    template: '/static/bower_components/angular-uploader/src/templates/media-popup.html',
+                    template: basePath + '/templates/media-popup.html',
                     className: 'ngdialog-theme-plain custom-width',
                     controller: ['$scope', function ($scope) {
+                        abortAll();
+                        $scope.uploading = false;
                         $scope.term = term || '';
                         $scope.imageResults = [];
                         $scope.sources = {};
@@ -91,10 +207,53 @@
                             }
                         };
 
-                        $scope.upload = function (uploads) {
-                            angular.forEach(uploads, function (url) {
-                                $scope.urls.push(url);
-                            });
+                        $scope.upload = function (files) {
+                            if (files && files.length) {
+                                $scope.uploading = true;
+
+                                var results = [];
+                                var total = 0;
+
+                                var done = function () {
+                                    $scope.uploading = false;
+
+                                    angular.forEach(results, function (v, k) {
+                                        $scope.sources[v] = true;
+                                    });
+                                };
+
+                                for (var i = 0; i < files.length; i++) {
+                                    var file = files[i];
+                                    var promise = $upload.upload({url: uploaderURL, file: file});
+
+                                    promise.success(function (obj, status, headers, config) {
+                                        if (obj && obj.url) {
+                                            results.push(obj.url);
+
+                                            $timeout(function () {
+                                                $('#selectedTab').popover({
+                                                    trigger: 'manual',
+                                                    title: 'Upload complete',
+                                                    content: "File " + config.file.name + " was uploaded successfully."
+                                                }).popover('show');
+                                                $timeout(function () { $('#selectedTab').popover('destroy'); }, 5000);
+                                            }, 1000);
+                                        }
+                                    });
+
+                                    promise.error(function (data, status, headers, config) {
+                                        $notice.error("Sorry, " + config.file.name + " could not be uploaded");
+                                    });
+
+                                    promise.progress(function (evt) {
+                                        $scope.file = evt.config.file.name;
+                                    });
+
+                                    promises.push(promise);
+                                }
+
+                                $q.all(promises).then(done, done)
+                            }
                         };
 
                         $scope.loadImages = function (term) {
@@ -247,7 +406,8 @@
                         };
 
                         $scope.init();
-                    }]
+                    }],
+                    preCloseCallback: abortAll
                 });
             };
 
@@ -281,6 +441,6 @@
                 }
             }
         }])
-})();
+})();*/
 
 
