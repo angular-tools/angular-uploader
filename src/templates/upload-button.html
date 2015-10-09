@@ -6,7 +6,7 @@
         <i class="fa fa-refresh fa-spin"></i> Uploading..
     </button>
 
-    <div class="inline-block" ng-show="url && preview" style="line-height: 32px"> |
+    <div class="inline-block" ng-show="url && preview && preview !== 'popup'" style="line-height: 32px"> |
         <a href="" ng-href="{{url}}" class="inline-block" target="preview">
             <div thumb-height="32" ng-thumb url="url"></div>
         </a>

@@ -345,7 +345,7 @@
                 restrict: 'A',
                 replace: true,
                 require: 'ngModel',
-                scope: {btnText: '@', btnClass: '@', onUpload: '=', onProgress: '=', type: '@', preview: '=', hideRemove: '='},
+                scope: {btnText: '@', btnClass: '@', onUpload: '=', onProgress: '=', type: '@', preview: '@', hideRemove: '='},
                 templateUrl: basePath + '/templates/upload-button.html',
                 link: function ($scope, element, attrs, ngModel) {
                     $scope.init = function () {
@@ -353,6 +353,24 @@
                         $scope.$watch('url', function () {
                             ngModel.$setViewValue($scope.url);
                         });
+
+                        if (($scope.preview === 'popup') && (!$scope.type || ($scope.type === 'image'))) {
+                            $(element).popover({
+                                container: 'body',
+                                html: true,
+                                template: '<div class="popover" role="tooltip"><div class="arrow"></div><div class="popover-content"></div></div>',
+                                content: function () { return '<p>Current image:</p><img src="' + $scope.url + '" style="max-width:200px;max-height:200px;">'; },
+                                placement: 'top'
+                            });
+
+                            $(element).hover(function () {
+                                if ($scope.url) {
+                                    $(element).popover('show');
+                                }
+                            }, function () {
+                                $(element).popover('hide');
+                            });
+                        }
                     };
 
                     ngModel.$render = $scope.init;
@@ -420,7 +438,9 @@
                     };
                 }
             };
-        }]);
-})();
+        }])
+    ;
+})
+();
 
 
