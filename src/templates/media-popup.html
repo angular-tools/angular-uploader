@@ -1,7 +1,7 @@
 <script src="//www.google.com/jsapi"></script>
 <script src="//apis.google.com/js/client.js"></script>
 
-<div class="row" id="uploadPopup">
+<div class="row" id="uploadPopup" ng-init="uploading=false">
     <div class="col-md-12" ng-show="processing">
         <h3 class="title"><i class="fa fa-spinner fa-spin"></i> Processing items</h3>
 
@@ -17,9 +17,9 @@
     </div>
     <div class="col-md-12" ng-show="!processing">
         <ul id="myTab" class="nav nav-tabs">
-            <li class="active"><a href="#image-search" data-toggle="tab"><i class="fa fa-picture-o"></i> Image search</a></li>
-            <li><a href="#video-search" data-toggle="tab"><i class="fa fa-video-camera"></i> Video search</a></li>
-            <li><a href="#upload" data-toggle="tab"><i class="fa fa-upload"></i> Upload</a></li>
+            <li class="active" ng-show="tabs['image-search']"><a href="#image-search" data-toggle="tab"><i class="fa fa-picture-o"></i> Image search</a></li>
+            <li ng-show="tabs['video-search']"><a href="#video-search" data-toggle="tab"><i class="fa fa-video-camera"></i> Video search</a></li>
+            <li ng-show="tabs['upload']"><a href="#upload" data-toggle="tab"><i class="fa fa-upload"></i> Upload</a></li>
             <li><a id="selectedTab" href="#selectedItems" data-toggle="tab" ng-show="urls.length"><i class="fa fa-check-circle"></i> Selected ({{urls.length}})</a></li>
         </ul>
         <div id="myTabContent" class="tab-content">
@@ -49,12 +49,12 @@
                     <div class="preview pre-scrollable">
                         <div class="row">
                             <div class="col-xs-6 col-sm-4 col-md-3 col-lg-3 item" ng-repeat="result in imageResults">
-                                <div class="thumbnail" ng-class="{'alert-warning': sources[result.src]}" ng-click="sources[result.src]=!sources[result.src]">
+                                <div class="thumbnail" ng-class="{'alert-warning': sel(result.src)}" ng-click="add(result.src)">
                                     <div ng-thumb url="result.thumb"></div>
 
-                                    <div class="caption">
-                                        <input type="checkbox" ng-model="sources[result.src]" />
-                                        <span class="text-small label-fixed-height" title="{{result.caption}}" ng-bind-html="((result.caption || term) | truncate:20) | trustedHTML"></span>
+                                    <div class="caption truncated">
+                                        <input type="checkbox" ng-model="sources[result.src]" ng-if="!singular" />
+                                        <span class="text-small" title="{{result.caption}}" ng-bind-html="((result.caption || term) | truncate:20) | trustedHTML"></span>
                                     </div>
                                 </div>
                             </div>
@@ -92,7 +92,7 @@
                     <div class="preview pre-scrollable">
                         <div class="row">
                             <div class="col-xs-6 col-sm-4 col-md-3 col-lg-3 item" ng-repeat="result in videoResults">
-                                <div class="thumbnail" ng-class="{'alert-warning': sources[result.src]}" ng-click="sources[result.src]=!sources[result.src]" ng-mouseenter="hover=true"
+                                <div class="thumbnail" ng-class="{'alert-warning': sel(result.src)}" ng-click="add(result.src)" ng-mouseenter="hover=true"
                                      ng-mouseleave="hover=false">
 
                                     <div class="close-button" ng-show="hover">
@@ -106,9 +106,9 @@
 
                                     <div ng-thumb url="result.thumb"></div>
 
-                                    <div class="caption">
-                                        <input type="checkbox" ng-model="sources[result.src]" />
-                                        <span class="text-small label-fixed-height" title="{{result.caption}}" ng-bind-html="((result.caption || term) | truncate:20) | trustedHTML"></span>
+                                    <div class="caption truncated">
+                                        <input type="checkbox" ng-model="sources[result.src]" ng-if="!singular" />
+                                        <span class="text-small" title="{{result.caption}}" ng-bind-html="((result.caption || term) | truncate:20) | trustedHTML"></span>
                                     </div>
                                 </div>
                             </div>
@@ -134,9 +134,9 @@
                         <label class="col-md-3 col-xs-5 control-label" for="upload">Upload photo / video:</label>
 
                         <div class="col-xs-5 col-md-9">
-                            <button type="button" upload-button ng-model="ignore" class="btn btn-primary" uploading="uploading" multiple="true" on-upload-complete="upload"
-                                accept=".png, .jpg, .jpeg .gif, .avi, .mov, .wmv, .mp4, .flv">
-                                <i class="fa fa-upload"></i> Upload photos / videos..
+                            <button type="button" upload-button ng-model="ignore" class="btn btn-primary" uploading="uploading" ng-disabled="uploading" singular="{{singular}}"
+                                    on-upload-complete="upload" accept=".png, .jpg, .jpeg .gif, .avi, .mov, .wmv, .mp4, .flv">
+                                <i class="fa {{uploading && 'fa-refresh fa-spin' || 'fa-upload'}}"></i> {{uploading && 'Uploading..' || 'Upload your photos / videos..'}}
                             </button>
                         </div>
                     </div>

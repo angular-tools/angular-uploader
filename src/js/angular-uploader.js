@@ -55,7 +55,7 @@
         .factory('$mediaUploader', ['ngDialog', '$timeout', '$notice', '$q', '$http', function ($dialog, $timeout, $notice, $q, $http) {
             var mediaUploader = {};
 
-            mediaUploader.show = function (cb, term, defaultTab, withCaptions) {
+            mediaUploader.show = function (args) {
                 var promises = [];
                 var imageSearch;
 
@@ -63,11 +63,17 @@
                     template: '/static/bower_components/angular-uploader/src/templates/media-popup.html',
                     className: 'ngdialog-theme-plain custom-width',
                     controller: ['$scope', function ($scope) {
-                        $scope.term = term || '';
+                        $scope.cb = args.cb;
+                        $scope.tab = args.activeTab;
+                        $scope.term = args.term || '';
+                        $scope.singular = args.singular;
+                        $scope.withCaptions = args.withCaptions;
+                        $scope.tabs = args.tabs || {'image-search': true, 'video-search': true, 'upload': true};
+                        $scope.license = args.license || 'any';
+
                         $scope.imageResults = [];
                         $scope.sources = {};
                         $scope.urls = [];
-                        $scope.license = 'any';
 
                         $scope.init = function () {
                             $scope.$watch('sources', function () {
@@ -80,12 +86,12 @@
                                 });
                             }, true);
 
-                            if (defaultTab) {
+                            if ($scope.tab) {
                                 $timeout(function () {
-                                    $('a[href="#' + defaultTab + '"').click();
+                                    $('a[href="#' + $scope.tab + '"').click();
 
-                                    if (term) {
-                                        $('#' + defaultTab + '-button').click();
+                                    if ($scope.term) {
+                                        $('#' + $scope.tab + '-button').click();
                                     }
                                 }, 500);
                             }
@@ -182,16 +188,28 @@
                             });
                         };
 
+                        $scope.add = function (url) {
+                            if ($scope.singular) {
+                                $scope.urls[0] = url;
+                            } else {
+                                $scope.sources[url] = !$scope.sources[url];
+                            }
+                        };
+
+                        $scope.sel = function (url) {
+                            return ($scope.singular && (url === $scope.urls[0])) || $scope.sources[url];
+                        };
+
                         $scope.itemType = function (url) {
                             return (/youtube\.com/i.test(url) || /(\.mp4)$/.test(url)) ? 'video' : 'photo';
                         };
 
                         $scope.save = function () {
-                            if (($scope.urls.length > 0) && (cb instanceof Function)) {
+                            if (($scope.urls.length > 0) && ($scope.cb instanceof Function)) {
                                 var proxy = [];
                                 for (var i = $scope.urls.length - 1; i >= 0; i--) {
                                     var url = $scope.urls[i];
-                                    if (($scope.itemType(url) === 'photo') && !/s3\.amazonaws\.com/i.test(url)) {
+                                    if (($scope.itemType(url) === 'photo') && !/s3\.amazonaws\.com/i.test(url) && !/cloudfront\.net/i.test(url)) {
                                         proxy.push(url);
                                         $scope.urls.splice(i, 1);
                                     }
@@ -234,7 +252,7 @@
                             var urls = $scope.urls;
                             var results = [];
 
-                            if (withCaptions) {
+                            if ($scope.withCaptions) {
                                 angular.forEach(urls, function (url) {
                                     results.push(_.findWhere($scope.videoResults, {src: url}) || _.findWhere($scope.imageResults, {src: url}) || {url: url});
                                 });
@@ -242,7 +260,7 @@
                                 results = results.concat(urls);
                             }
 
-                            $timeout(function () { cb(results); });
+                            $timeout(function () { $scope.cb(results ? ($scope.singular ? results[0] : results) : []); });
                             $scope.closeThisDialog();
                         };
 
