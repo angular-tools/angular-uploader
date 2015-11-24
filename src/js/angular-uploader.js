@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    angular.module('angularUploader', ['session', 'ngDialog', 'angularStringFilters', 'angularThumb', 'angularAudio', 'angularSimpleUploader'])
+    angular.module('angularUploader', ['session', 'ngDialog', 'angularStringFilters', 'angularThumb', 'angularAudio', 'angularSimpleUploader', 'cfp.loadingBar'])
         .factory('$musicUploader', ['ngDialog', '$timeout', function ($dialog, $timeout) {
             var audioUploader = {};
             var baseURL = 'http://www.bgtracks.com';
@@ -52,7 +52,7 @@
 
             return audioUploader;
         }])
-        .factory('$mediaUploader', ['ngDialog', '$timeout', '$notice', '$q', '$http', function ($dialog, $timeout, $notice, $q, $http) {
+        .factory('$mediaUploader', ['ngDialog', '$timeout', '$notice', '$q', '$http', 'cfpLoadingBar', function ($dialog, $timeout, $notice, $q, $http, cfpLoadingBar) {
             var mediaUploader = {};
 
             mediaUploader.show = function (args) {
@@ -98,9 +98,13 @@
                         };
 
                         $scope.upload = function (uploads) {
-                            angular.forEach(uploads, function (url) {
-                                $scope.urls.push(url);
-                            });
+                            if ($scope.singular) {
+                                $scope.urls[0] = uploads;
+                            } else {
+                                angular.forEach(uploads, function (url) {
+                                    $scope.urls.push(url);
+                                });
+                            }
                         };
 
                         $scope.loadImages = function (term) {
@@ -121,6 +125,8 @@
 
                             imageSearch = new window.imageSearch();
                             imageSearch.setSearchCompleteCallback(this, function () {
+                                cfpLoadingBar.complete();
+
                                 angular.forEach(imageSearch.results, function (result) {
                                     $scope.imageResults.push({thumb: result.tbUrl, src: result.url, caption: result.contentNoFormatting});
                                 });
@@ -141,6 +147,7 @@
                             }
 
                             imageSearch.execute(term);
+                            cfpLoadingBar.start();
                         };
 
                         $scope.loadMoreImages = function () {
@@ -175,7 +182,8 @@
                             var request = window.videoSearch(params);
 
                             request.execute(function (response) {
-                                console.log(response);
+                                cfpLoadingBar.complete();
+
                                 angular.forEach(response.items, function (result) {
                                     $scope.videoResults.push({
                                         thumb: result.snippet.thumbnails.default.url,
@@ -186,6 +194,8 @@
 
                                 $timeout(function () {$scope.moreVideos = response.nextPageToken ? response.nextPageToken : false;});
                             });
+
+                            cfpLoadingBar.start();
                         };
 
                         $scope.add = function (url) {
