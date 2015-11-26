@@ -18,12 +18,12 @@
 
                         $scope.init = function () {
                             $.getJSON(baseURL + '/api/sfxs?sort=genre' + '&callback=?', function (obj) {
-                                console.log(obj);
+                                //console.log(obj);
                                 $timeout(function () { $scope.sfxs = obj; });
                             });
 
                             $.getJSON(baseURL + '/api/tracks?sort=genre' + '&callback=?', function (obj) {
-                                console.log(obj);
+                                //console.log(obj);
                                 $timeout(function () { $scope.tracks = obj; });
                             });
 
