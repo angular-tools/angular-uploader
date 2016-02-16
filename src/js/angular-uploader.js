@@ -57,7 +57,6 @@
 
             mediaUploader.show = function (args) {
                 var promises = [];
-                var imageSearch;
 
                 $dialog.open({
                     template: '/static/bower_components/angular-uploader/src/templates/media-popup.html',
@@ -107,53 +106,11 @@
                             }
                         };
 
-                        $scope.loadImages = function (term) {
-                            if (typeof(window.imageSearch) !== 'undefined') {
-                                $scope.searchImages(term);
-                            } else {
-                                if (typeof(google) !== 'undefined') {
-                                    google.load('search', '1', {'callback': 'window.imageSearch = google.search.ImageSearch;'});
-                                }
-
-                                setTimeout($scope.loadImages, 1000, term);
-                            }
-                        };
-
                         $scope.searchImages = function (term) {
-                            $scope.imageResults = [];
-                            $scope.moreImages = false;
-
-                            imageSearch = new window.imageSearch();
-                            imageSearch.setSearchCompleteCallback(this, function () {
-                                cfpLoadingBar.complete();
-
-                                angular.forEach(imageSearch.results, function (result) {
-                                    $scope.imageResults.push({thumb: result.tbUrl, src: result.url, caption: result.contentNoFormatting});
-                                });
-
-                                $timeout(function () {
-                                    var cursor = imageSearch.cursor;
-                                    var totalPages = cursor.pages.length;
-
-                                    $scope.moreImages = cursor.currentPageIndex < totalPages - 1 ? cursor.currentPageIndex + 1 : false;
-                                });
-                            }, null);
-
-                            imageSearch.setResultSetSize(8);
-                            imageSearch.setNoHtmlGeneration();
-
-                            if ($scope.license === 'creativeCommon') {
-                                imageSearch.setRestriction(window.imageSearch.RESTRICT_RIGHTS, window.imageSearch.RIGHTS_REUSE);
-                            }
-
-                            imageSearch.execute(term);
                             cfpLoadingBar.start();
-                        };
-
-                        $scope.loadMoreImages = function () {
-                            if ($scope.moreImages > 0) {
-                                imageSearch.gotoPage($scope.moreImages);
-                            }
+                            $http.get('/services/image-search', {term: term}).then(function (results) {
+                                //console.log("results: ", results);
+                            }, $notice.defaultError);
                         };
 
                         $scope.loadVideos = function (term) {
