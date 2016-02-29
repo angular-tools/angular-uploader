@@ -4,7 +4,7 @@
     angular.module('angularUploader', ['session', 'ngDialog', 'angularStringFilters', 'angularThumb', 'angularAudio', 'angularSimpleUploader', 'cfp.loadingBar'])
         .factory('$musicUploader', ['ngDialog', '$timeout', function ($dialog, $timeout) {
             var audioUploader = {};
-            var baseURL = 'http://www.bgtracks.com';
+            var baseURL = '/bgtracks';
 
             audioUploader.show = function (cb, sound, hideTunes, hideSfx, defaultTab) {
                 $dialog.open({
@@ -17,17 +17,17 @@
                         $scope.hideSfx = !!hideSfx;
 
                         $scope.init = function () {
-                            $.getJSON(baseURL + '/api/sfxs?sort=genre' + '&callback=?', function (obj) {
+                            $.getJSON(baseURL + '/sfxs?sort=genre' + '&callback=?', function (obj) {
                                 //console.log(obj);
                                 $timeout(function () { $scope.sfxs = obj; });
                             });
 
-                            $.getJSON(baseURL + '/api/tracks?sort=genre' + '&callback=?', function (obj) {
+                            $.getJSON(baseURL + '/tracks?sort=genre' + '&callback=?', function (obj) {
                                 //console.log(obj);
                                 $timeout(function () { $scope.tracks = obj; });
                             });
 
-                            $.getJSON(baseURL + '/api/resources?sort=popularity&callback=?', function (obj) {
+                            $.getJSON(baseURL + '/resources?sort=popularity&callback=?', function (obj) {
                                 $timeout(function () { $scope.resources = obj; });
                             });
 
@@ -69,6 +69,7 @@
                         $scope.withCaptions = args.withCaptions;
                         $scope.tabs = args.tabs || {'image-search': true, 'video-search': true, 'upload': true};
                         $scope.license = args.license || 'any';
+                        $scope.autoSearch = args.autoSearch;
 
                         $scope.imageResults = [];
                         $scope.sources = {};
@@ -85,12 +86,17 @@
                                 });
                             }, true);
 
-                            if ($scope.tab) {
-                                $timeout(function () {
-                                    $('a[href="#' + $scope.tab + '"').click();
+                            $timeout(function () {
+                                $('a[data-toggle="tab"]').click($scope.onTabSwitch);
+                                $('a[href="#' + ($scope.tab || 'image-search') + '"').click();
+                            }, 500);
+                        };
 
-                                    if ($scope.term) {
-                                        $('#' + $scope.tab + '-button').click();
+                        $scope.onTabSwitch = function () {
+                            if ($scope.term && $scope.autoSearch) {
+                                $timeout(function () {
+                                    if ($('div.tab-pane.active div.image-result').length == 0) {
+                                        $('div.tab-pane.active button.btn-go').click();
                                     }
                                 }, 500);
                             }
@@ -108,9 +114,20 @@
 
                         $scope.searchImages = function (term) {
                             cfpLoadingBar.start();
-                            $http.get('/services/image-search', {term: term}).then(function (results) {
-                                //console.log("results: ", results);
-                            }, $notice.defaultError);
+                            $scope.imageResults.splice(0, $scope.imageResults.length);
+                            $scope.searching = true;
+
+                            $http.get('/image-search', {params: {term: term, license: $scope.license}}).then(function (obj) {
+                                if (obj && obj.data && obj.data.results && obj.data.results.length > 0) {
+                                    angular.forEach(obj.data.results, function (result) {
+                                        $scope.imageResults.push({thumb: result.thumb || result.src, src: result.src, caption: result.caption || $scope.basename(result)});
+                                    });
+                                }
+                            }, $notice.defaultError).then(function () {$scope.searching = false;})
+                        };
+
+                        $scope.basename = function (url) {
+                            return (url || '').split('/').pop();
                         };
 
                         $scope.loadVideos = function (term) {
@@ -215,13 +232,24 @@
                             $scope.processing = false;
                         };
 
+                        $scope.removeThumb = function (item) {
+                            if ($scope.imageResults) {
+                                var index = $scope.imageResults.indexOf(item);
+                                if (index != -1) {
+                                    $timeout(function () {$scope.imageResults.splice(index, 1);});
+                                } else {
+                                    //console.log("item not found: ", item);
+                                }
+                            }
+                        };
+
                         $scope.addURLs = function () {
                             var urls = $scope.urls;
                             var results = [];
 
                             if ($scope.withCaptions) {
                                 angular.forEach(urls, function (url) {
-                                    results.push(_.findWhere($scope.videoResults, {src: url}) || _.findWhere($scope.imageResults, {src: url}) || {url: url});
+                                    results.push(_.findWhere($scope.videoResults, {src: url}) || _.findWhere($scope.imageResults, {src: url}) || {src: url});
                                 });
                             } else {
                                 results = results.concat(urls);

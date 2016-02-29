@@ -41,7 +41,8 @@
                             </div>
                             <input type="search" class="form-control" ng-model="term" placeholder="Search keywords..." ng-required="true" />
                             <span class="input-group-btn">
-                                <button class="btn btn-default btn-success" id="image-search-button" type="submit"><i class="fa fa-search"></i> Go!</button>
+                                <button class="btn btn-danger" ng-show="searching"><i class="fa fa-refresh fa-spin"></i> Searching..</button>
+                                <button class="btn btn-success btn-go" id="image-search-button" type="submit" ng-show="!searching"><i class="fa fa-search"></i> Go!</button>
                             </span>
                         </div>
                     </div>
@@ -49,8 +50,8 @@
                     <div class="preview pre-scrollable">
                         <div class="row">
                             <div class="col-xs-6 col-sm-4 col-md-3 col-lg-3 item" ng-repeat="result in imageResults">
-                                <div class="thumbnail" ng-class="{'alert-warning': sel(result.src)}" ng-click="add(result.src)">
-                                    <div ng-thumb url="result.thumb"></div>
+                                <div class="thumbnail" ng-class="{'alert-warning': sel(result.src)}" ng-click="add(result.src)" ng-show="!result.hide">
+                                    <div class="image-preview" ng-thumb url="result.thumb" ng-fail="removeThumb(result)"></div>
 
                                     <div class="caption truncated">
                                         <input type="checkbox" ng-model="sources[result.src]" ng-if="!singular" />
@@ -84,7 +85,7 @@
                             </div>
                             <input type="search" class="form-control" ng-model="term" placeholder="Search keywords..." ng-required="true" />
                             <span class="input-group-btn">
-                                <button class="btn btn-default btn-success" id="image-search-button" type="submit"><i class="fa fa-search"></i> Go!</button>
+                                <button class="btn btn-default btn-success btn-go" id="image-search-button" type="submit"><i class="fa fa-search"></i> Go!</button>
                             </span>
                         </div>
                     </div>
