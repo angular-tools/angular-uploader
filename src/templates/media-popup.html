@@ -41,8 +41,8 @@
                             </div>
                             <input type="search" class="form-control" ng-model="term" placeholder="Search keywords..." ng-required="true" />
                             <span class="input-group-btn">
-                                <button class="btn btn-danger" ng-show="searching"><i class="fa fa-refresh fa-spin"></i> Searching..</button>
-                                <button class="btn btn-success btn-go" id="image-search-button" type="submit" ng-show="!searching"><i class="fa fa-search"></i> Go!</button>
+                                <button type="button" class="btn btn-danger" ng-show="searching" ng-click="searching = false"><i class="fa fa-refresh fa-spin"></i> Searching..</button>
+                                <button type="submit" class="btn btn-success btn-go" id="image-search-button" ng-show="!searching"><i class="fa fa-search"></i> Go!</button>
                             </span>
                         </div>
                     </div>

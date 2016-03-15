@@ -52,7 +52,7 @@
 
             return audioUploader;
         }])
-        .factory('$mediaUploader', ['ngDialog', '$timeout', '$notice', '$q', '$http', 'cfpLoadingBar', function ($dialog, $timeout, $notice, $q, $http, cfpLoadingBar) {
+        .factory('$mediaUploader', ['ngDialog', '$timeout', '$notice', '$q', '$http', 'cfpLoadingBar', '$rootScope', function ($dialog, $timeout, $notice, $q, $http, cfpLoadingBar, $rootScope) {
             var mediaUploader = {};
 
             mediaUploader.show = function (args) {
@@ -70,7 +70,6 @@
                         $scope.tabs = args.tabs || {'image-search': true, 'video-search': true, 'upload': true};
                         $scope.license = args.license || 'any';
                         $scope.autoSearch = args.autoSearch;
-
                         $scope.imageResults = [];
                         $scope.sources = {};
                         $scope.urls = [];
@@ -116,14 +115,43 @@
                             cfpLoadingBar.start();
                             $scope.imageResults.splice(0, $scope.imageResults.length);
                             $scope.searching = true;
+                            $scope.term = term;
 
                             $http.get('/image-search', {params: {term: term, license: $scope.license}}).then(function (obj) {
                                 if (obj && obj.data && obj.data.results && obj.data.results.length > 0) {
-                                    angular.forEach(obj.data.results, function (result) {
-                                        $scope.imageResults.push({thumb: result.thumb || result.src, src: result.src, caption: result.caption || $scope.basename(result)});
+                                    var results = obj.data.results;
+                                    var queueEntryPoint = $q.defer();
+                                    var queue = queueEntryPoint.promise;
+
+                                    var returnPromise = function (item) {
+                                        var defer = $q.defer();
+                                        var img = new Image();
+                                        img.onload = function () {
+                                            if (term == $scope.term) {
+                                                $scope.imageResults.push({thumb: item.thumb || item.src, src: item.src, caption: item.caption || $scope.basename(item.src)});
+                                                $timeout(defer.resolve);
+                                            }
+                                        };
+
+                                        img.onerror = defer.resolve;
+
+                                        if ($scope.searching) {
+                                            img.src = item.src;
+                                        }
+
+                                        $timeout(defer.resolve, !$scope.searching ? 0 : 5000);
+
+                                        return defer.promise;
+                                    };
+
+                                    results.forEach(function (item) {
+                                        queue = queue.then(function () {return returnPromise(item)});
                                     });
+
+                                    queueEntryPoint.resolve();
+                                    queue.then(function () { $scope.searching = false; }).catch(function (exception) {});
                                 }
-                            }, $notice.defaultError).then(function () {$scope.searching = false;})
+                            }, $notice.defaultError);
                         };
 
                         $scope.basename = function (url) {
@@ -142,6 +170,7 @@
                         };
 
                         $scope.searchVideos = function (term, token) {
+                            $scope.term = term;
                             $scope.moreVideos = false;
 
                             var api_key = 'AIzaSyCBdyG0mb-kaxrHkY3bH3LmPGqigFrEtVg ';
@@ -258,6 +287,10 @@
                             $timeout(function () { $scope.cb(results ? ($scope.singular ? results[0] : results) : []); });
                             $scope.closeThisDialog();
                         };
+
+                        $scope.$on('ngDialog.closing', function () {
+                            $scope.searching = $scope.term = false;
+                        });
 
                         $scope.init();
                     }]
